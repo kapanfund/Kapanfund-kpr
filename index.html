@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KapanFund — Simulasi KPR</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+/* ══════════════════════════════════════════════
+   LIGHT (default – always active on :root)
+══════════════════════════════════════════════ */
+:root {
+  --bg:      #ffffff;
+  --bg2:     #f7f8fc;
+  --bg3:     #f0f2f7;
+  --card:    #ffffff;
+  --card2:   #f8f9ff;
+  --bd:      #e2e6f0;
+  --bd2:     #c8cede;
+
+  --t1:      #111827;
+  --t2:      #374151;
+  --t3:      #6b7280;
+
+  --hbg:     #ffffff;
+  --ibg:     #f7f8fc;
+  --thead:   #f0f2f7;
+  --talt:    #fafbff;
+  --yrrow:   #f0f2f7;
+  --sb:      #c8cede;
+  --ov:      rgba(17,24,39,0.48);
+  --shad:    0 1px 14px rgba(17,24,39,0.09);
+
+  --au:      #7a5a0e; /* gold */
+  --aul:     #9a7218;
+  --aud:     rgba(122,90,14,0.09);
+  --aub:     rgba(122,90,14,0.25);
+
+  --te:      #0a6b65; /* teal */
+  --ted:     rgba(10,107,101,0.08);
+  --teb:     rgba(10,107,101,0.22);
+
+  --re:      #991b1b; /* red */
+  --red:     rgba(153,27,27,0.07);
+  --reb:     rgba(153,27,27,0.22);
+
+  --pu:      #5b34a8; /* purple */
+  --pud:     rgba(91,52,168,0.07);
+  --pub:     rgba(91,52,168,0.22);
+}
+
+/* ══════════════════════════════════════════════
+   DARK overrides
+══════════════════════════════════════════════ */
+body.dark {
+  --bg:      #0f1117;
+  --bg2:     #14171f;
+  --bg3:     #1a1e2c;
+  --card:    #1e2235;
+  --card2:   #242840;
+  --bd:      #2d3250;
+  --bd2:     #3d4365;
+
+  --t1:      #f0f2f8;
+  --t2:      #b0b8d4;
+  --t3:      #6e789a;
+
+  --hbg:     #0f1117;
+  --ibg:     #1a1e2c;
+  --thead:   #181b2a;
+  --talt:    #1c2033;
+  --yrrow:   #181b2a;
+  --sb:      #2d3250;
+  --ov:      rgba(5,6,12,0.82);
+  --shad:    0 2px 20px rgba(0,0,0,0.5);
+
+  --au:      #d4a84e;
+  --aul:     #eacf72;
+  --aud:     rgba(212,168,78,0.13);
+  --aub:     rgba(212,168,78,0.30);
+
+  --te:      #2ecfc7;
+  --ted:     rgba(46,207,199,0.10);
+  --teb:     rgba(46,207,199,0.28);
+
+  --re:      #f06868;
+  --red:     rgba(240,104,104,0.10);
+  --reb:     rgba(240,104,104,0.28);
+
+  --pu:      #a87ef0;
+  --pud:     rgba(168,126,240,0.11);
+  --pub:     rgba(168,126,240,0.30);
+}
+
+/* ══════════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--bg); }
+body {
+  background: var(--bg);
+  color: var(--t1);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  transition: background .25s, color .25s;
+}
+
+/* ══════════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════════ */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--hbg);
+  border-bottom: 1px solid var(--bd);
+  padding: 0 2rem;
+  display: flex; align-items: center; gap: 1.2rem;
+  height: 62px;
+  transition: background .25s, border-color .25s;
+}
+.logo-blk { display: flex; flex-direction: column; gap: 1px; }
+.logo { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 900; color: var(--au); line-height: 1; letter-spacing: -.3px; }
+.logo span { color: var(--t3); font-weight: 400; }
+.logo-sub { font-size: .65rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--t3); }
+
+.hclock { margin-left: auto; text-align: right; }
+.hclock-t { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 600; color: var(--au); letter-spacing: 1.5px; line-height: 1; }
+.hclock-d { font-size: .68rem; color: var(--t3); margin-top: 2px; }
+
+.hacts { display: flex; align-items: center; gap: 10px; margin-left: 1.2rem; }
+.thm-wrap { display: flex; align-items: center; gap: 7px; }
+.thm-ico { font-size: .9rem; }
+.thm-track {
+  position: relative; width: 42px; height: 22px;
+  background: var(--bg3); border: 1.5px solid var(--bd2);
+  border-radius: 99px; cursor: pointer; transition: background .2s;
+}
+.thm-track::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--au); transition: transform .22s;
+}
+body:not(.dark) .thm-track::after { transform: translateX(20px); }
+.thm-lbl { font-size: .68rem; color: var(--t3); letter-spacing: 1px; text-transform: uppercase; }
+.pill {
+  background: var(--aud); border: 1px solid var(--aub);
+  color: var(--au); border-radius: 99px;
+  padding: 5px 16px; font-size: .72rem; font-weight: 600;
+  letter-spacing: .8px; text-transform: uppercase;
+  cursor: pointer; transition: filter .18s; font-family: 'DM Sans', sans-serif;
+}
+.pill:hover { filter: brightness(.9); }
+
+/* ══════════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════════ */
+.wrap { max-width: 1280px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+
+/* ══════════════════════════════════════════════
+   HERO
+══════════════════════════════════════════════ */
+.hero { text-align: center; padding: 3rem 0 2.4rem; }
+.hero-eye { font-size: .68rem; letter-spacing: 3px; text-transform: uppercase; color: var(--aul); margin-bottom: .8rem; font-weight: 600; }
+.hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem,4.5vw,3.6rem); font-weight: 900; color: var(--t1); margin-bottom: .8rem; line-height: 1.08; }
+.hero h1 em { color: var(--au); font-style: italic; }
+.hero p { color: var(--t2); font-size: .95rem; max-width: 480px; margin: 0 auto; line-height: 1.7; }
+
+/* ══════════════════════════════════════════════
+   DIVIDERS / SECTIONS
+══════════════════════════════════════════════ */
+.hr { border: none; border-top: 1px solid var(--bd); margin: 1.2rem 0; }
+.gdiv { border: none; border-top: 1px solid var(--bd); margin: 2rem 0; }
+.sec { margin: 2rem 0; }
+.sec-h { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--t1); margin-bottom: 1.2rem; display: flex; align-items: center; gap: .6rem; }
+.sec-h::after { content: ''; flex: 1; height: 1px; background: var(--bd); }
+
+/* ══════════════════════════════════════════════
+   GRID
+══════════════════════════════════════════════ */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; }
+@media (max-width:860px) { .g2 { grid-template-columns: 1fr; } }
+
+/* ══════════════════════════════════════════════
+   CARD
+══════════════════════════════════════════════ */
+.card { background: var(--card); border: 1px solid var(--bd); border-radius: 16px; padding: 1.5rem; transition: background .25s, border-color .25s; }
+.card-h { font-family: 'Playfair Display', serif; font-size: .95rem; font-weight: 700; color: var(--au); margin-bottom: 1.1rem; display: flex; align-items: center; gap: .5rem; }
+.card-ico { width: 26px; height: 26px; background: var(--aud); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: .82rem; }
+
+/* ══════════════════════════════════════════════
+   FORMS
+══════════════════════════════════════════════ */
+.field { margin-bottom: .9rem; }
+.field label { display: block; font-size: .7rem; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--t2); margin-bottom: .4rem; }
+.hint { font-size: .7rem; color: var(--t3); margin-top: .3rem; }
+
+input[type=text], input[type=number], input[type=email], input[type=tel], select, textarea {
+  width: 100%; background: var(--ibg); border: 1.5px solid var(--bd);
+  border-radius: 9px; color: var(--t1); font-family: 'DM Mono', monospace;
+  font-size: .88rem; padding: 9px 13px; outline: none;
+  transition: border .18s, box-shadow .18s; -webkit-appearance: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--au); box-shadow: 0 0 0 3px var(--aud); }
+select option { background: var(--card); color: var(--t1); }
+
+.pfx { position: relative; }
+.pfx span { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--aul); pointer-events: none; font-weight: 600; }
+.pfx input { padding-left: 46px; }
+.sfx { position: relative; }
+.sfx span { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--t3); pointer-events: none; }
+.sfx input { padding-right: 38px; }
+
+/* Rate mode */
+.rg { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin-bottom: 1rem; }
+.rm { padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--bd); background: var(--bg3); color: var(--t2); font-family: 'DM Sans', sans-serif; font-size: .73rem; font-weight: 500; cursor: pointer; transition: all .15s; text-align: center; }
+.rm.on { border-color: var(--au); background: var(--aud); color: var(--au); font-weight: 700; }
+.rm:hover:not(.on) { border-color: var(--bd2); color: var(--t1); }
+
+/* Step table */
+.stbl { width: 100%; border-collapse: collapse; margin-top: .5rem; }
+.stbl th { font-size: .65rem; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--t3); padding: 5px 7px; text-align: left; border-bottom: 1px solid var(--bd); }
+.stbl td { padding: 7px 5px; border-bottom: 1px solid var(--bd); vertical-align: middle; }
+.stbl input { font-size: .8rem; padding: 5px 9px; }
+.rmbtn { background: var(--red); border: 1px solid var(--reb); color: var(--re); border-radius: 6px; padding: 4px 8px; cursor: pointer; font-size: .72rem; font-family: 'DM Sans', sans-serif; }
+.rmbtn:hover { filter: brightness(.9); }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; padding: 11px 22px; border-radius: 12px; border: none; font-family: 'DM Sans', sans-serif; font-size: .88rem; font-weight: 600; cursor: pointer; transition: all .18s; white-space: nowrap; }
+.btn-au { background: var(--au); color: #fff; box-shadow: 0 2px 10px var(--aud); }
+.btn-au:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.btn-gh { background: transparent; border: 1.5px solid var(--bd2); color: var(--t2); }
+.btn-gh:hover { border-color: var(--au); color: var(--au); }
+.btn-te { background: var(--ted); border: 1.5px solid var(--teb); color: var(--te); }
+.btn-te:hover { filter: brightness(.92); }
+.btn-pu { background: var(--pud); border: 1.5px solid var(--pub); color: var(--pu); }
+.btn-pu:hover { filter: brightness(.92); }
+.btn-sm { padding: 7px 14px; font-size: .76rem; border-radius: 8px; }
+.btn-bl { width: 100%; }
+
+/* Badges */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: .62rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+.b-fix { background: var(--aud); color: var(--au); border: 1px solid var(--aub); }
+.b-flt { background: var(--red); color: var(--re); border: 1px solid var(--reb); }
+
+/* ══════════════════════════════════════════════
+   STATS
+══════════════════════════════════════════════ */
+.stats { display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap: 1rem; margin: 1.2rem 0 .8rem; }
+.stat { background: var(--card); border: 1px solid var(--bd); border-radius: 12px; padding: 1.1rem 1.2rem; border-top: 3px solid var(--au); transition: background .25s; }
+.stat-lbl { font-size: .65rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--t3); margin-bottom: .4rem; }
+.stat-val { font-family: 'DM Mono', monospace; font-size: 1.1rem; font-weight: 700; color: var(--t1); line-height: 1.2; }
+.cau { color: var(--au); }
+.cre { color: var(--re); }
+.cte { color: var(--te); }
+.stat-sub { font-size: .68rem; color: var(--t3); margin-top: .3rem; }
+
+/* ══════════════════════════════════════════════
+   IDEAL TENOR
+══════════════════════════════════════════════ */
+.ideal-card {
+  display: flex; align-items: flex-start; gap: .85rem;
+  background: var(--ted); border: 1.5px solid var(--teb);
+  border-radius: 12px; padding: 1rem 1.2rem; margin-top: 1rem;
+}
+.ideal-ico { font-size: 1.5rem; flex-shrink: 0; margin-top: 2px; }
+.ideal-body { flex: 1; }
+.ideal-title { font-size: .65rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--te); margin-bottom: .3rem; }
+.ideal-val { font-family: 'DM Mono', monospace; font-size: 1.4rem; font-weight: 700; color: var(--te); line-height: 1.1; margin-bottom: .3rem; }
+.ideal-desc { font-size: .76rem; color: var(--t2); line-height: 1.6; }
+.ideal-desc strong { color: var(--t1); }
+.ideal-pills { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; }
+.ideal-pill { display: inline-block; background: var(--ted); border: 1px solid var(--teb); border-radius: 99px; padding: 2px 10px; font-size: .68rem; font-weight: 600; color: var(--te); }
+.ideal-pill.warn { background: var(--red); border-color: var(--reb); color: var(--re); }
+
+/* ══════════════════════════════════════════════
+   CHART
+══════════════════════════════════════════════ */
+.chart-card { background: var(--card); border: 1px solid var(--bd); border-radius: 16px; padding: 1.4rem; margin-bottom: 1.4rem; }
+.chart-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.1rem; }
+.chart-h { position: relative; height: 310px; }
+.leg { display: flex; gap: 1rem; margin-top: .5rem; }
+.leg span { display: flex; align-items: center; gap: .35rem; font-size: .72rem; color: var(--t2); }
+.ldot { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; }
+
+/* ══════════════════════════════════════════════
+   TABLE
+══════════════════════════════════════════════ */
+.tbl-outer { border: 1px solid var(--bd); border-radius: 12px; overflow: hidden; }
+.tbl-scroll { max-height: 420px; overflow: auto; }
+.tbl-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.tbl-scroll::-webkit-scrollbar-track { background: var(--bg2); }
+.tbl-scroll::-webkit-scrollbar-thumb { background: var(--sb); border-radius: 3px; }
+table.dt { width: 100%; border-collapse: collapse; font-size: .76rem; }
+table.dt thead tr { background: var(--thead); }
+table.dt th { padding: 9px 11px; text-align: right; font-weight: 700; font-size: .65rem; letter-spacing: .6px; text-transform: uppercase; color: var(--t3); white-space: nowrap; border-bottom: 1px solid var(--bd); position: sticky; top: 0; background: var(--thead); z-index: 1; }
+table.dt th:first-child { text-align: center; }
+table.dt td { padding: 7px 11px; text-align: right; border-bottom: 1px solid var(--bd); font-family: 'DM Mono', monospace; font-size: .73rem; color: var(--t2); white-space: nowrap; transition: background .1s; }
+table.dt td:first-child { text-align: center; color: var(--t3); }
+table.dt tr:last-child td { border-bottom: none; }
+table.dt tr:hover td { background: var(--talt); color: var(--t1); }
+table.dt .yr td { background: var(--yrrow); color: var(--au); font-weight: 700; font-size: .7rem; }
+table.dt .hi td { background: var(--ted); color: var(--te); }
+.tbl-foot { display: flex; align-items: center; justify-content: space-between; padding: .7rem 1rem; font-size: .72rem; color: var(--t3); border-top: 1px solid var(--bd); background: var(--card); }
+.pg { background: var(--bg3); border: 1px solid var(--bd); border-radius: 6px; padding: 4px 10px; color: var(--t2); cursor: pointer; font-size: .75rem; font-family: 'DM Sans', sans-serif; transition: all .15s; }
+.pg:hover:not(:disabled) { border-color: var(--au); color: var(--au); }
+.pg:disabled { opacity: .3; cursor: not-allowed; }
+.yf { display: flex; gap: .35rem; flex-wrap: wrap; margin-bottom: .75rem; }
+.yb { padding: 4px 10px; border-radius: 6px; border: 1px solid var(--bd); background: transparent; color: var(--t3); font-size: .7rem; cursor: pointer; transition: all .15s; font-family: 'DM Sans', sans-serif; }
+.yb.on { border-color: var(--au); color: var(--au); background: var(--aud); }
+
+/* ══════════════════════════════════════════════
+   EARLY REPAY BOX
+══════════════════════════════════════════════ */
+.ebox { background: var(--ted); border: 1.5px solid var(--teb); border-radius: 12px; padding: 1.1rem; }
+.erow { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--teb); flex-wrap: wrap; gap: .3rem; }
+.erow:last-child { border-bottom: none; }
+.elbl { font-size: .76rem; color: var(--t2); }
+.eval { font-family: 'DM Mono', monospace; font-size: .8rem; color: var(--t1); font-weight: 500; }
+.eval.big { color: var(--au); font-weight: 700; font-size: .92rem; }
+.eval.neg { color: var(--re); font-weight: 600; }
+.eval.pos { color: var(--te); font-weight: 600; }
+
+/* ══════════════════════════════════════════════
+   INVESTMENT SIM
+══════════════════════════════════════════════ */
+.ibox { background: var(--card2); border: 1.5px solid var(--pub); border-radius: 16px; padding: 1.3rem; margin-top: 1.1rem; }
+.ibox-h { font-family: 'Playfair Display', serif; font-size: .95rem; font-weight: 700; color: var(--pu); margin-bottom: .5rem; display: flex; align-items: center; gap: .45rem; }
+.ibox-desc { font-size: .8rem; color: var(--t2); line-height: 1.55; margin-bottom: 1rem; }
+.ibox-desc strong { color: var(--au); font-family: 'DM Mono', monospace; }
+.ig { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .75rem; }
+.ires { margin-top: 1.1rem; background: var(--pud); border: 1px solid var(--pub); border-radius: 12px; padding: 1.1rem; }
+.ires-h { font-size: .66rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--pu); margin-bottom: .4rem; }
+.ires-desc { font-size: .78rem; color: var(--t2); margin-bottom: .8rem; line-height: 1.5; }
+.ires-desc strong { color: var(--au); }
+.icards { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; margin-top: .3rem; }
+.icard { background: var(--card); border: 1px solid var(--bd); border-radius: 9px; padding: .8rem .9rem; }
+.icard-l { font-size: .62rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--t3); margin-bottom: .3rem; }
+.icard-v { font-family: 'DM Mono', monospace; font-size: .96rem; color: var(--pu); font-weight: 600; }
+.icard-v.g { color: var(--au); }
+.icard-v.t { color: var(--te); }
+.iproj { margin-top: .9rem; border: 1px solid var(--bd); border-radius: 8px; max-height: 210px; overflow-y: auto; }
+.iproj::-webkit-scrollbar { width: 5px; }
+.iproj::-webkit-scrollbar-track { background: var(--bg2); }
+.iproj::-webkit-scrollbar-thumb { background: var(--sb); border-radius: 3px; }
+.iacts { margin-top: .85rem; display: flex; gap: .6rem; flex-wrap: wrap; }
+.tmode-g { display: flex; flex-direction: column; gap: .45rem; margin-bottom: 1rem; }
+.tmode-o { display: flex; align-items: flex-start; gap: .6rem; padding: .65rem .85rem; border-radius: 9px; border: 1.5px solid var(--bd); background: var(--bg3); cursor: pointer; transition: all .15s; }
+.tmode-o:hover, .tmode-o.on { border-color: var(--pu); background: var(--pud); }
+.tmode-o input[type=radio] { margin-top: 2px; accent-color: var(--pu); flex-shrink: 0; }
+.tmode-lbl { font-size: .78rem; font-weight: 600; color: var(--t1); line-height: 1.3; }
+.tmode-sub { font-size: .7rem; color: var(--t3); margin-top: 1px; }
+.tmode-extra { margin-top: .55rem; padding: .6rem .85rem; background: var(--pud); border: 1px solid var(--pub); border-radius: 8px; }
+.tgt-bar { background: var(--pud); border: 1px solid var(--pub); border-radius: 8px; padding: .6rem .85rem; margin-bottom: .9rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .4rem; }
+.tgt-lbl { font-size: .72rem; color: var(--t2); font-weight: 600; }
+.tgt-val { font-family: 'DM Mono', monospace; font-size: .9rem; color: var(--pu); font-weight: 700; }
+
+/* ══════════════════════════════════════════════
+   DISCLAIMER
+══════════════════════════════════════════════ */
+.disc { display: flex; gap: .75rem; align-items: flex-start; background: var(--aud); border: 1px solid var(--aub); border-left: 3px solid var(--au); border-radius: 12px; padding: .85rem 1rem; margin-top: 1.5rem; }
+.disc-ico { font-size: .95rem; flex-shrink: 0; margin-top: 1px; }
+.disc-body { font-size: .76rem; color: var(--t2); line-height: 1.6; }
+.disc-body strong { color: var(--t1); font-weight: 600; }
+.disc-body a { color: var(--aul); text-decoration: underline; }
+.disc-sm { font-size: .7rem; color: var(--t3); border-top: 1px solid var(--bd); padding-top: .65rem; margin-top: .75rem; line-height: 1.55; }
+.disc-sm strong { color: var(--t2); }
+
+/* ══════════════════════════════════════════════
+   INFO TOOLTIP
+══════════════════════════════════════════════ */
+.iw { position: relative; display: inline-flex; align-items: center; }
+.ibtn { width: 18px; height: 18px; border-radius: 50%; background: var(--aud); border: 1.5px solid var(--aub); color: var(--au); font-size: .62rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin-left: 5px; font-family: 'DM Sans', sans-serif; }
+.ibtn:hover { filter: brightness(.9); }
+.ipop { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--card); border: 1px solid var(--bd); border-radius: 10px; padding: .85rem 1rem; width: 280px; z-index: 50; box-shadow: var(--shad); display: none; font-family: 'DM Sans', sans-serif; }
+.ipop.open { display: block; }
+.ipop::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: var(--bd); }
+.ipop::before { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%) translateY(-1px); border: 6px solid transparent; border-top-color: var(--card); z-index: 1; }
+.ip-t { font-size: .72rem; font-weight: 700; color: var(--au); margin-bottom: .4rem; }
+.ip-b { font-size: .75rem; color: var(--t2); line-height: 1.55; }
+.ip-b strong { color: var(--t1); }
+
+/* ══════════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════════ */
+.ov { position: fixed; inset: 0; z-index: 200; background: var(--ov); display: none; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(4px); }
+.ov.open { display: flex; }
+.modal { background: var(--card); border: 1px solid var(--bd); border-radius: 18px; padding: 2rem; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: var(--shad); }
+.modal-t { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 900; color: var(--au); margin-bottom: .35rem; }
+.modal-sub { font-size: .83rem; color: var(--t2); margin-bottom: 1.4rem; line-height: 1.55; }
+.modal-x { position: absolute; top: 1rem; right: 1rem; background: var(--bg3); border: 1px solid var(--bd); border-radius: 7px; padding: 4px 10px; color: var(--t2); cursor: pointer; font-size: .82rem; font-family: 'DM Sans', sans-serif; }
+.modal-x:hover { color: var(--t1); border-color: var(--au); }
+.ok-box { text-align: center; padding: 2.5rem 1rem; display: none; }
+.ok-box .ck { font-size: 3rem; margin-bottom: 1rem; }
+.ok-box h3 { font-family: 'Playfair Display', serif; color: var(--te); margin-bottom: .5rem; }
+.ok-box p { color: var(--t2); font-size: .85rem; line-height: 1.6; }
+
+/* ══════════════════════════════════════════════
+   GLOSSARY
+══════════════════════════════════════════════ */
+.gw { background: var(--card); border: 1px solid var(--bd); border-radius: 16px; overflow: hidden; margin-top: 1rem; }
+.gh { padding: 1rem 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; transition: background .15s; }
+.gh:hover { background: var(--bg3); }
+.gh-l { display: flex; align-items: center; gap: .6rem; }
+.gt { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--t1); }
+.gc { font-size: .75rem; color: var(--t3); transition: transform .2s; }
+.gc.open { transform: rotate(180deg); }
+.gb { display: none; padding: 0 1.3rem 1.3rem; }
+.gb.open { display: block; }
+.gg { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; margin-top: .75rem; }
+@media (max-width:680px) { .gg { grid-template-columns: 1fr; } }
+.gi { background: var(--bg3); border: 1px solid var(--bd); border-radius: 9px; padding: .75rem .9rem; }
+.gi-term { font-size: .72rem; font-weight: 700; color: var(--t1); margin-bottom: .3rem; display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.gi-def { font-size: .76rem; color: var(--t2); line-height: 1.55; }
+.gi-def strong { color: var(--t1); }
+.gtag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; background: var(--aud); color: var(--au); border: 1px solid var(--aub); white-space: nowrap; }
+
+/* ══════════════════════════════════════════════
+   TOAST / FOOTER / MISC
+══════════════════════════════════════════════ */
+.toast { position: fixed; bottom: 1.8rem; right: 1.8rem; z-index: 300; background: var(--card); border: 1px solid var(--bd); border-left: 3px solid var(--au); border-radius: 10px; padding: .85rem 1.3rem; font-size: .83rem; color: var(--t1); opacity: 0; transform: translateY(8px); transition: all .25s; pointer-events: none; box-shadow: var(--shad); }
+.toast.on { opacity: 1; transform: translateY(0); }
+.sf { background: var(--bg2); border-top: 1px solid var(--bd); padding: 1.4rem 2rem; margin-top: 3rem; }
+.sf-in { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: .5rem; }
+.sf-br { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--au); }
+.sf-d { font-size: .72rem; color: var(--t3); line-height: 1.6; max-width: 820px; }
+.sf-d strong { color: var(--t2); }
+.empty-s { text-align: center; padding: 4rem 2rem; color: var(--t3); }
+.empty-s .ico { font-size: 2.8rem; margin-bottom: .8rem; opacity: .5; }
+.cta-c { text-align: center; padding: 2.5rem; }
+.spin { display: inline-block; width: 15px; height: 15px; border: 2px solid var(--aud); border-top-color: var(--au); border-radius: 50%; animation: sp .7s linear infinite; margin-right: .3rem; }
+@keyframes sp { to { transform: rotate(360deg); } }
+
+@media (max-width:620px) {
+  header { padding: 0 1rem; }
+  .hclock { display: none; }
+  .wrap { padding: 1.5rem 1rem; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .rg { grid-template-columns: 1fr; }
+  .ig { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-blk">
+    <div class="logo">KapanFund <span>/ KPR</span></div>
+    <div class="logo-sub">Mortgage Simulator</div>
+  </div>
+  <div class="hclock">
+    <div class="hclock-t" id="cT">00:00:00</div>
+    <div class="hclock-d" id="cD">—</div>
+  </div>
+  <div class="hacts">
+    <div class="thm-wrap">
+      <span class="thm-ico" id="tIco">☀️</span>
+      <button class="thm-track" onclick="toggleTheme()" title="Toggle tema"></button>
+      <span class="thm-lbl" id="tLbl">Light</span>
+    </div>
+    <button class="pill" onclick="openModal()">💬 Konsultasi Gratis</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eye">Simulasi Akurat · Transparan · Profesional</div>
+    <h1>Simulasi <em>KPR</em> Lengkap</h1>
+    <p>Hitung cicilan, total bunga, dan jadwal amortisasi detail. Dukung bunga fixed, floating, dan step-up.</p>
+  </div>
+
+  <!-- INPUTS -->
+  <div class="sec">
+    <div class="sec-h">⚙️ Parameter Kredit</div>
+    <div class="g2">
+      <!-- LEFT -->
+      <div class="card">
+        <div class="card-h"><span class="card-ico">🏠</span> Informasi Kredit</div>
+        <div class="field">
+          <label>Plafond Kredit (IDR)</label>
+          <div class="pfx"><span>Rp</span><input type="text" id="creditLimit" placeholder="500.000.000" oninput="fmtRp(this)"/></div>
+        </div>
+        <div class="field">
+          <label>Tenor (Tahun)</label>
+          <div class="sfx"><span>tahun</span><input type="number" id="tenureYears" min="1" max="35" value="20"/></div>
+        </div>
+        <hr class="hr">
+        <div class="card-h" style="margin-bottom:.75rem"><span class="card-ico">📉</span> Pelunasan Dipercepat</div>
+        <div class="g2" style="gap:.75rem">
+          <div class="field" style="margin:0">
+            <label>Di Tahun ke-</label>
+            <div class="sfx"><span>th</span><input type="number" id="earlyYear" placeholder="5" min="1"/></div>
+          </div>
+          <div class="field" style="margin:0">
+            <label>Penalti (%)</label>
+            <div class="sfx"><span>%</span><input type="number" id="earlyPenalty" placeholder="2" step="0.1" value="2"/></div>
+          </div>
+        </div>
+        <div class="hint" style="margin-top:.4rem">Kosongkan jika tidak ada pelunasan dipercepat</div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="card">
+        <div class="card-h"><span class="card-ico">📊</span> Struktur Suku Bunga</div>
+        <div class="rg">
+          <button class="rm on" onclick="setMode('fa')" id="rm-fa">Fixed Selama Tenor</button>
+          <button class="rm" onclick="setMode('ff')" id="rm-ff">Fixed + Float</button>
+          <button class="rm" onclick="setMode('su')" id="rm-su">Step-Up Custom</button>
+          <button class="rm" onclick="setMode('rm')" id="rm-rm">Reference + Margin</button>
+        </div>
+
+        <div id="m-fa">
+          <div class="field">
+            <label>Suku Bunga Fixed (%/tahun)</label>
+            <div class="sfx"><span>%</span><input type="number" id="rateFixedAll" value="10.5" step="0.1"/></div>
+          </div>
+          <span class="badge b-fix">Fixed selama seluruh tenor</span>
+        </div>
+
+        <div id="m-ff" style="display:none">
+          <div class="g2" style="gap:.75rem">
+            <div class="field" style="margin:0"><label>Rate Fixed (%)</label>
+              <div class="sfx"><span>%</span><input type="number" id="rateFixed" value="5.5" step="0.1"/></div></div>
+            <div class="field" style="margin:0"><label>Durasi Fixed (th)</label>
+              <div class="sfx"><span>th</span><input type="number" id="rateFixedYrs" value="3" min="1"/></div></div>
+          </div>
+          <div class="field" style="margin-top:.75rem"><label>Rate Floating (%)</label>
+            <div class="sfx"><span>%</span><input type="number" id="rateFloat" value="12" step="0.1"/></div></div>
+        </div>
+
+        <div id="m-su" style="display:none">
+          <table class="stbl"><thead><tr><th>Dari Th.</th><th>Sampai Th.</th><th>Rate (%)</th><th>Tipe</th><th></th></tr></thead>
+            <tbody id="stepBody"></tbody></table>
+          <button class="btn btn-gh btn-sm" style="margin-top:.6rem" onclick="addStep()">+ Tambah Periode</button>
+        </div>
+
+        <div id="m-rm" style="display:none">
+          <div class="g2" style="gap:.75rem">
+            <div class="field" style="margin:0"><label>Reference Rate (%)</label>
+              <div class="sfx"><span>%</span><input type="number" id="refRate" value="4.5" step="0.1" oninput="calcRef()"/></div></div>
+            <div class="field" style="margin:0"><label>Margin (%)</label>
+              <div class="sfx"><span>%</span><input type="number" id="refMargin" value="5" step="0.1" oninput="calcRef()"/></div></div>
+          </div>
+          <div class="hint" style="margin-top:.5rem">Effective Rate = Reference + Margin</div>
+          <div style="margin-top:.4rem"><span class="badge b-flt">Total: <span id="refTotal">9.50</span>%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:1.4rem;display:flex;justify-content:center;gap:.7rem">
+      <button class="btn btn-au" onclick="calculate()" id="calcBtn">✦ Hitung Simulasi</button>
+      <button class="btn btn-gh" onclick="resetForm()">Reset</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results" style="display:none">
+    <hr class="gdiv">
+
+    <!-- DISCLAIMER BANNER -->
+    <div class="disc">
+      <span class="disc-ico">⚠️</span>
+      <div class="disc-body">
+        <strong>Disclaimer Simulasi:</strong> Seluruh hasil bersifat <strong>ilustratif dan estimasi</strong>. Angka aktual dapat berbeda tergantung kebijakan bank, biaya administrasi, asuransi, dan kondisi suku bunga pasar. Simulasi ini <strong>bukan penawaran atau komitmen kredit</strong>. Konsultasikan dengan profesional atau <a href="https://wa.me/6282233798351" target="_blank">konsultan KapanFund</a>.
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="sec">
+      <div class="sec-h">📋 Ringkasan Kredit</div>
+      <div class="stats" id="statsGrid"></div>
+      <div id="idealBox"></div>
+    </div>
+
+    <!-- CHART -->
+    <div class="sec">
+      <div class="sec-h">📊 Grafik Amortisasi</div>
+      <div class="chart-card">
+        <div class="chart-head">
+          <div>
+            <div style="font-size:.78rem;color:var(--t2);font-weight:500">Komposisi Pembayaran per Tahun</div>
+            <div class="leg" id="chartLeg"></div>
+          </div>
+          <button class="btn btn-gh btn-sm" onclick="dlChart()">⬇ PNG</button>
+        </div>
+        <div class="chart-h"><canvas id="chart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- EARLY REPAY -->
+    <div class="sec" id="earlySection" style="display:none">
+      <div class="sec-h">⚡ Simulasi Pelunasan Dipercepat</div>
+      <div id="earlyContent"></div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="sec">
+      <div class="sec-h">📋 Jadwal Amortisasi Detail</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem;flex-wrap:wrap;gap:.5rem">
+        <span style="font-size:.74rem;color:var(--t3)" id="tblInfo"></span>
+        <button class="btn btn-te btn-sm" onclick="dlPDF()">⬇ PDF Amortisasi</button>
+      </div>
+      <div class="yf" id="yrFilter"></div>
+      <div class="tbl-outer">
+        <div class="tbl-scroll">
+          <table class="dt">
+            <thead><tr><th>Bln</th><th style="text-align:left">Rate</th><th>Pokok</th><th>Bunga</th><th>Angsuran</th><th>Sisa Pokok</th></tr></thead>
+            <tbody id="tblBody"></tbody>
+          </table>
+        </div>
+        <div class="tbl-foot">
+          <span id="pgInfo">—</span>
+          <div style="display:flex;gap:.35rem">
+            <button class="pg" id="pgP" onclick="chPg(-1)">‹ Prev</button>
+            <button class="pg" id="pgN" onclick="chPg(1)">Next ›</button>
+          </div>
+        </div>
+      </div>
+      <div class="disc-sm">⚠ <strong>Catatan:</strong> Jadwal dihitung dengan metode anuitas. Angka riil dapat berbeda karena pembulatan bank, biaya provisi, asuransi jiwa/kebakaran, dan perubahan suku bunga floating.</div>
+    </div>
+  </div>
+
+  <!-- EMPTY -->
+  <div class="empty-s" id="emptyState">
+    <div class="ico">🏦</div>
+    <div>Masukkan parameter kredit dan klik <strong>Hitung Simulasi</strong></div>
+  </div>
+
+  <!-- GLOSSARY -->
+  <hr class="gdiv">
+  <div class="sec">
+    <div class="sec-h">📖 Glosarium KPR</div>
+    <div class="gw">
+      <div class="gh" onclick="toggleGloss()">
+        <div class="gh-l"><span style="font-size:1.1rem">📚</span><span class="gt">Kamus Istilah KPR & Simulasi</span><span style="font-size:.73rem;color:var(--t3);margin-left:.5rem">20 istilah</span></div>
+        <span class="gc" id="gChev">▼</span>
+      </div>
+      <div class="gb" id="gBody">
+        <div class="gg">
+          <div class="gi"><div class="gi-term"><span class="gtag">Dasar</span> Plafond / Pokok Kredit</div><div class="gi-def">Jumlah uang yang dipinjam dari bank — <strong>hutang awal</strong> sebelum bunga. Misal: pinjam Rp 500 juta, plafond = Rp 500 juta.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Dasar</span> Tenor</div><div class="gi-def">Jangka waktu pinjaman. Tenor panjang → angsuran kecil tapi bunga total lebih besar. Tenor pendek → angsuran besar tapi lebih hemat bunga.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Bunga</span> Suku Bunga Fixed</div><div class="gi-def">Bunga <strong>tetap tidak berubah</strong> selama periode tertentu. Memberikan kepastian angsuran — umumnya periode promosi di awal KPR.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Bunga</span> Suku Bunga Floating</div><div class="gi-def">Bunga yang <strong>berubah mengikuti acuan pasar</strong> (BI Rate). Angsuran bisa naik atau turun — risiko lebih tinggi, tapi bisa menguntungkan jika rate turun.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Bunga</span> Suku Bunga Step-Up</div><div class="gi-def">Bunga bertahap yang <strong>meningkat seiring waktu</strong>. Cocok jika income Anda diproyeksikan meningkat seiring karir.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Bunga</span> Reference Rate + Margin</div><div class="gi-def">Bunga efektif = <strong>acuan (BI Rate) + margin bank</strong>. Margin tetap, acuan bergerak mengikuti kebijakan moneter.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Angsuran</span> Amortisasi</div><div class="gi-def">Pelunasan hutang secara <strong>bertahap lewat angsuran rutin</strong>. Setiap cicilan terdiri dari komponen pokok (mengurangi hutang) dan bunga.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Angsuran</span> Angsuran / Cicilan</div><div class="gi-def">Pembayaran rutin bulanan. Dalam sistem <strong>anuitas</strong>, jumlah cicilan tetap sepanjang tenor (selama bunga tidak berubah).</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Angsuran</span> Komponen Pokok</div><div class="gi-def">Bagian cicilan yang <strong>mengurangi hutang pokok</strong>. Di awal tenor porsinya kecil, membesar mendekati akhir tenor.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Angsuran</span> Komponen Bunga</div><div class="gi-def">Bagian cicilan berupa <strong>biaya meminjam</strong>. Dihitung dari sisa outstanding × suku bunga bulanan. Porsinya besar di awal, mengecil di akhir.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Saldo</span> Outstanding / Sisa Pokok</div><div class="gi-def"><strong>Sisa hutang yang belum dilunasi</strong>. Dasar perhitungan bunga tiap bulan. Ini yang dibayar saat pelunasan dipercepat.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Pelunasan</span> Pelunasan Dipercepat</div><div class="gi-def">Melunasi seluruh sisa hutang <strong>sebelum tenor berakhir</strong>. Menghemat bunga signifikan namun biasanya dikenakan penalti bank.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Pelunasan</span> Penalti Pelunasan</div><div class="gi-def">Biaya bank saat Anda lunasi KPR lebih cepat. Umumnya <strong>1–3% dari sisa outstanding</strong>, tergantung kebijakan bank.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Pelunasan</span> Penghematan Bunga</div><div class="gi-def">Total bunga yang <strong>tidak jadi Anda bayar</strong> karena lunasi lebih awal — keuntungan finansial nyata dari keputusan ini.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Analisis</span> Rasio Efisiensi Bunga</div><div class="gi-def">Total bunga ÷ pokok × 100%. Rasio <strong>≤ 100% dianggap wajar</strong> (bunga tidak melebihi pokok). &lt;50% sangat efisien, &gt;100% pertimbangkan refinancing.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Analisis</span> Tenor Ideal</div><div class="gi-def">Tenor maksimal di mana <strong>total bunga masih ≤ pokok pinjaman</strong> (rasio ≤ 100%). Melampaui tenor ini berarti Anda membayar bunga lebih besar dari uang yang dipinjam.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Analisis</span> Debt Service Ratio (DSR)</div><div class="gi-def">Persentase pendapatan bulanan untuk cicilan. Bank Indonesia merekomendasikan <strong>DSR maksimal 30–40%</strong> dari penghasilan bersih.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Investasi</span> Compounding</div><div class="gi-def">Return investasi yang <strong>menghasilkan return lagi</strong>. Semakin awal mulai, semakin besar efek compounding bekerja untuk Anda.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Investasi</span> Lump Sum</div><div class="gi-def">Investasi <strong>sekaligus di awal</strong> dengan satu nominal besar — langsung dicompounding dari hari pertama.</div></div>
+          <div class="gi"><div class="gi-term"><span class="gtag">Investasi</span> Kontribusi Berkala (DCA)</div><div class="gi-def">Menyisihkan dana secara <strong>rutin bulanan/tahunan</strong>. Mengurangi risiko market timing dan membangun disiplin keuangan.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <hr class="gdiv">
+  <div class="card cta-c">
+    <div style="font-size:2rem;margin-bottom:.7rem">💼</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--t1);margin-bottom:.5rem">Butuh Bantuan Profesional?</div>
+    <div style="color:var(--t2);font-size:.88rem;max-width:440px;margin:0 auto 1.3rem;line-height:1.65">Tim konsultan KapanFund siap membantu Anda menemukan skema KPR terbaik sesuai profil keuangan Anda.</div>
+    <button class="btn btn-au" onclick="openModal()">Konsultasi Gratis Sekarang →</button>
+  </div>
+</div>
+
+<!-- SITE FOOTER -->
+<footer class="sf">
+  <div class="sf-in">
+    <div class="sf-br">KapanFund</div>
+    <div class="sf-d"><strong>Disclaimer:</strong> Simulasi ini untuk tujuan <strong>edukasi dan perencanaan awal</strong>. Semua angka bersifat estimasi ilustratif dan tidak mengikat secara hukum. Belum mencakup biaya provisi, administrasi, appraisal, asuransi, BPHTB, AJB, notaris, dan biaya lainnya. Suku bunga floating bersifat dinamis. Simulasi investasi menggunakan asumsi return konstan — <strong>bukan jaminan kinerja masa depan</strong>. Konsultasikan dengan profesional keuangan berlisensi sebelum mengambil keputusan.</div>
+    <div style="font-size:.68rem;color:var(--t3);margin-top:.25rem">© 2025 KapanFund · Konsultasi KPR & Perencanaan Keuangan · <a href="https://wa.me/6282233798351" style="color:var(--au)">0822-3379-8351</a></div>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="ov" id="overlay" onclick="closeOuter(event)">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div id="formWrap">
+      <div class="modal-t">Konsultasi Gratis</div>
+      <div class="modal-sub">Isi form di bawah, tim kami akan segera menghubungi Anda dalam 1×24 jam.</div>
+      <div class="field"><label>Nama Lengkap *</label><input type="text" id="fName" placeholder="Budi Santoso"/></div>
+      <div class="field"><label>Email *</label><input type="email" id="fEmail" placeholder="budi@email.com"/></div>
+      <div class="field"><label>No. HP / WhatsApp *</label><input type="tel" id="fPhone" placeholder="08xxxxxxxxxx"/></div>
+      <div class="field"><label>Jenis Kebutuhan *</label>
+        <select id="fType">
+          <option value="">-- Pilih --</option>
+          <option>KPR Developer</option><option>KPR Secondary</option>
+          <option>Take Over KPR</option><option>Multiguna Agunan Properti</option>
+          <option>Take Over Multiguna</option><option>Take Over Jual Beli KPR</option>
+        </select></div>
+      <div class="field"><label>Pesan / Catatan (opsional)</label><textarea id="fNotes" rows="3" placeholder="Ceritakan kebutuhan Anda..."></textarea></div>
+      <button class="btn btn-au btn-bl" onclick="submitForm()">Kirim ke WhatsApp Konsultan →</button>
+      <div style="font-size:.7rem;color:var(--t3);text-align:center;margin-top:.75rem">
+        Atau via Google Form: <a href="https://docs.google.com/forms/create" target="_blank" style="color:var(--au)">Buka Form</a>
+      </div>
+    </div>
+    <div class="ok-box" id="okBox">
+      <div class="ck">✅</div><h3>Terima Kasih!</h3>
+      <p>Data Anda telah terkirim.<br>Tim KapanFund akan menghubungi Anda segera.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ────────────────────────────────────────────────────
+let sched=[], rMode='fa', chartInst=null, curPg=1, viewYr=0, _out=0;
+const PER_PG=60;
+const DAYS=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const MTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+let stepData=[{from:1,to:1,rate:2.9,type:'fixed'},{from:2,to:3,rate:3.5,type:'fixed'},{from:4,to:7,rate:6.0,type:'fixed'},{from:8,to:999,rate:11.0,type:'floating'}];
+
+// ── CLOCK ────────────────────────────────────────────────────
+function tick(){
+  const n=new Date(),p=x=>String(x).padStart(2,'0');
+  document.getElementById('cT').textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+  document.getElementById('cD').textContent=`${DAYS[n.getDay()]}, ${n.getDate()} ${MTHS[n.getMonth()]} ${n.getFullYear()}`;
+}
+tick(); setInterval(tick,1000);
+
+// ── THEME ────────────────────────────────────────────────────
+function toggleTheme(){
+  const dark=document.body.classList.toggle('dark');
+  document.getElementById('tIco').textContent=dark?'🌙':'☀️';
+  document.getElementById('tLbl').textContent=dark?'Dark':'Light';
+  if(chartInst) setTimeout(buildChart,30);
+}
+
+// ── FORMAT ───────────────────────────────────────────────────
+const R=n=>n||n===0?'Rp '+Math.round(n).toLocaleString('id-ID'):'—';
+function C(n){if(n>=1e12)return'Rp '+(n/1e12).toFixed(2)+'T';if(n>=1e9)return'Rp '+(n/1e9).toFixed(2)+'M';if(n>=1e6)return'Rp '+(n/1e6).toFixed(1)+'jt';return R(n);}
+function fmtRp(el){const v=el.value.replace(/\D/g,'');el.value=v?parseInt(v).toLocaleString('id-ID'):'';}
+function parseRp(s){return parseFloat((s||'').replace(/\./g,'').replace(/,/g,'.').replace(/[^\d.]/g,''))||0;}
+const pct=r=>r.toFixed(2)+'%';
+
+// ── RATE MODE ────────────────────────────────────────────────
+function setMode(m){
+  rMode=m;
+  ['fa','ff','su','rm'].forEach(x=>{
+    document.getElementById('m-'+x).style.display=x===m?'':'none';
+    document.getElementById('rm-'+x).classList.toggle('on',x===m);
+  });
+}
+function calcRef(){
+  document.getElementById('refTotal').textContent=((+document.getElementById('refRate').value||4.5)+(+document.getElementById('refMargin').value||5)).toFixed(2);
+}
+
+// ── STEP ROWS ────────────────────────────────────────────────
+function renderSteps(){
+  document.getElementById('stepBody').innerHTML=stepData.map((r,i)=>`<tr>
+    <td><input type="number" value="${r.from}" min="1" style="width:55px" onchange="stepData[${i}].from=+this.value"/></td>
+    <td><input type="number" value="${r.to>=999?'':r.to}" placeholder="akhir" min="1" style="width:55px" onchange="stepData[${i}].to=this.value===''?999:+this.value"/></td>
+    <td><input type="number" value="${r.rate}" step="0.1" style="width:65px" onchange="stepData[${i}].rate=+this.value"/></td>
+    <td><select style="width:86px" onchange="stepData[${i}].type=this.value">
+      <option value="fixed" ${r.type==='fixed'?'selected':''}>Fixed</option>
+      <option value="floating" ${r.type==='floating'?'selected':''}>Float</option>
+    </select></td>
+    <td><button class="rmbtn" onclick="delStep(${i})">✕</button></td>
+  </tr>`).join('');
+}
+function addStep(){const l=stepData[stepData.length-1];stepData.push({from:(l?.to>=999?l.from+1:(l?.to||0)+1),to:999,rate:11,type:'floating'});renderSteps();}
+function delStep(i){stepData.splice(i,1);renderSteps();}
+renderSteps();
+
+// ── GET RATE ─────────────────────────────────────────────────
+function getRate(month){
+  const yr=Math.ceil(month/12);
+  if(rMode==='fa') return{rate:+document.getElementById('rateFixedAll').value||10.5,type:'fixed'};
+  if(rMode==='ff'){const fy=+document.getElementById('rateFixedYrs').value||3;return yr<=fy?{rate:+document.getElementById('rateFixed').value||5.5,type:'fixed'}:{rate:+document.getElementById('rateFloat').value||12,type:'floating'};}
+  if(rMode==='su'){for(const r of stepData)if(yr>=r.from&&yr<=(r.to>=999?Infinity:r.to))return{rate:r.rate,type:r.type};return{rate:stepData[stepData.length-1]?.rate||11,type:'floating'};}
+  if(rMode==='rm'){const t=(+document.getElementById('refRate').value||4.5)+(+document.getElementById('refMargin').value||5);return{rate:t,type:'floating'};}
+  return{rate:10,type:'fixed'};
+}
+
+// ── AMORTIZATION ─────────────────────────────────────────────
+function buildSched(principal,tenureYears){
+  const n=tenureYears*12; sched=[]; let out=principal;
+  for(let m=1;m<=n;m++){
+    const{rate,type}=getRate(m);
+    const mr=rate/100/12,rem=n-m+1;
+    const pay=mr===0?out/rem:out*mr*Math.pow(1+mr,rem)/(Math.pow(1+mr,rem)-1);
+    const int=out*mr,prin=pay-int;
+    out=Math.max(0,out-prin);
+    sched.push({month:m,year:Math.ceil(m/12),rate,type,principal:prin,interest:int,payment:pay,outstanding:out});
+  }
+}
+
+// ── CALCULATE ────────────────────────────────────────────────
+function calculate(){
+  const p=parseRp(document.getElementById('creditLimit').value);
+  const ty=+document.getElementById('tenureYears').value||0;
+  if(p<=0||ty<=0){toast('⚠ Masukkan plafond dan tenor yang valid');return;}
+  if(rMode==='su'&&stepData.length===0){toast('⚠ Tambahkan minimal 1 periode');return;}
+  const btn=document.getElementById('calcBtn');
+  btn.innerHTML='<span class="spin"></span> Menghitung...'; btn.disabled=true;
+  setTimeout(()=>{
+    buildSched(p,ty);
+    renderStats(p,ty); buildChart(); renderEarly(p); renderTable();
+    document.getElementById('results').style.display='';
+    document.getElementById('emptyState').style.display='none';
+    document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+    btn.innerHTML='✦ Hitung Simulasi'; btn.disabled=false;
+    toast('✦ Simulasi berhasil dihitung!');
+  },50);
+}
+
+// ── IDEAL TENOR ──────────────────────────────────────────────
+// Logic: find MAXIMUM tenor (1–35 yrs) where total interest ≤ principal (ratio ≤ 100%)
+// This is the patokan WAJAR. Beyond this, bunga > pokok.
+function calcIdealTenor(principal){
+  const box=document.getElementById('idealBox'); if(!box) return;
+  function simInt(ty){
+    const n=ty*12; let out=principal,ti=0;
+    for(let m=1;m<=n;m++){
+      const{rate}=getRate(m);
+      const mr=rate/100/12,rem=n-m+1;
+      const pay=mr===0?out/rem:out*mr*Math.pow(1+mr,rem)/(Math.pow(1+mr,rem)-1);
+      const int=out*mr; ti+=int; out=Math.max(0,out-(pay-int));
+    }
+    return ti;
+  }
+  const curTy=+document.getElementById('tenureYears').value;
+  const curTi=sched.reduce((s,r)=>s+r.interest,0);
+  const curRatio=curTi/principal*100;
+
+  // scan 1..35: total interest is monotonically increasing with tenor
+  // find last tenor where ratio <= 100
+  let best=null;
+  for(let ty=1;ty<=35;ty++){
+    const ti=simInt(ty);
+    const ratio=ti/principal*100;
+    if(ratio<=100) best={ty,ti,ratio};
+    else break; // monotone — once exceeded, all longer tenors also exceed
+  }
+
+  if(!best){
+    box.innerHTML=`<div class="ideal-card"><span class="ideal-ico">⚠️</span><div class="ideal-body">
+      <div class="ideal-title">Tenor Ideal Tidak Tersedia</div>
+      <div class="ideal-desc">Dengan suku bunga ini, total bunga melebihi pokok bahkan pada tenor 1 tahun. Negosiasikan suku bunga yang lebih rendah.</div>
+    </div></div>`;
+    return;
+  }
+
+  const overBatas=curTy>best.ty;
+  const extra=overBatas?curTi-best.ti:null;
+  const overYrs=overBatas?curTy-best.ty:0;
+
+  const statusBadge=curRatio<=100
+    ?`<span class="ideal-pill">✓ Wajar — Rasio ${curRatio.toFixed(1)}%</span>`
+    :`<span class="ideal-pill warn">⚠ Melebihi Batas Wajar — Rasio ${curRatio.toFixed(1)}%</span>`;
+
+  let comp='';
+  if(curTy===best.ty) comp='Tenor Anda tepat di batas efisiensi wajar — <strong>sudah optimal!</strong>';
+  else if(curTy<best.ty) comp=`Tenor Anda (${curTy} th, rasio <strong>${curRatio.toFixed(1)}%</strong>) lebih efisien dari batas wajar. Anda masih bisa memperpanjang hingga <strong>${best.ty} tahun</strong> dan tetap di batas wajar.`;
+  else comp=`Tenor Anda (<strong>${curTy} th</strong>) melampaui batas ideal <strong>${overYrs} tahun</strong>. Total bunga lebih bayar ≈ <strong style="color:var(--re)">${C(extra)}</strong> dibanding tenor ideal.`;
+
+  box.innerHTML=`<div class="ideal-card">
+    <span class="ideal-ico">🎯</span>
+    <div class="ideal-body">
+      <div class="ideal-title">Tenor Ideal — Batas Efisiensi Wajar (Rasio ≤ 100%)</div>
+      <div class="ideal-val">${best.ty} Tahun</div>
+      <div class="ideal-desc">
+        Dengan suku bunga yang dipilih, <strong>tenor maksimal ${best.ty} tahun</strong> menjaga total bunga tidak melebihi pokok pinjaman
+        (total bunga <strong>${C(best.ti)}</strong> · rasio <strong>${best.ratio.toFixed(1)}%</strong>).
+        Di atas tenor ini, Anda membayar bunga lebih besar dari uang yang dipinjam.<br><br>${comp}
+      </div>
+      <div class="ideal-pills">
+        <span class="ideal-pill">Max tenor wajar: ${best.ty} th</span>
+        <span class="ideal-pill">Tenor Anda: ${curTy} th</span>
+        ${statusBadge}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── STATS ────────────────────────────────────────────────────
+function renderStats(principal,tenureYears){
+  const tp=sched.reduce((s,r)=>s+r.payment,0);
+  const ti=sched.reduce((s,r)=>s+r.interest,0);
+  const fp=sched[0]?.payment||0;
+  const effRatio=(ti/principal*100).toFixed(1);
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="stat"><div class="stat-lbl">Plafond Kredit</div><div class="stat-val cau">${C(principal)}</div><div class="stat-sub">Pokok hutang awal</div></div>
+    <div class="stat"><div class="stat-lbl">Angsuran Pertama</div><div class="stat-val">${C(fp)}</div><div class="stat-sub">per bulan</div></div>
+    <div class="stat"><div class="stat-lbl">Total Bunga</div><div class="stat-val cre">${C(ti)}</div><div class="stat-sub">${(ti/tp*100).toFixed(1)}% dari total bayar</div></div>
+    <div class="stat"><div class="stat-lbl">Total Pembayaran</div><div class="stat-val cau">${C(tp)}</div><div class="stat-sub">Pokok + Bunga ${tenureYears} tahun</div></div>
+    <div class="stat"><div class="stat-lbl">Tenor</div><div class="stat-val cte">${tenureYears} Tahun</div><div class="stat-sub">${tenureYears*12} Bulan</div></div>
+    <div class="stat">
+      <div class="stat-lbl" style="display:flex;align-items:center">
+        Rasio Efisiensi Bunga
+        <div class="iw">
+          <button class="ibtn" onclick="toggleInfo('effInfo')" title="Apa itu Rasio Efisiensi?">!</button>
+          <div class="ipop" id="effInfo">
+            <div class="ip-t">📊 Rasio Efisiensi Bunga</div>
+            <div class="ip-b">
+              <strong>Definisi:</strong> Total bunga ÷ pokok pinjaman × 100%.<br><br>
+              <strong>Mengapa penting?</strong> Menunjukkan seberapa "mahal" biaya utang relatif pinjaman awal. Semakin rendah, semakin efisien.<br><br>
+              <strong>Interpretasi:</strong><br>
+              &lt; 50% → Sangat efisien<br>
+              50–100% → Wajar ✓<br>
+              &gt; 100% → Bunga melebihi pokok — pertimbangkan refinancing.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="stat-val ${effRatio>100?'cre':effRatio>50?'cau':'cte'}">${effRatio}%</div>
+      <div class="stat-sub">Total bunga ÷ pokok pinjaman</div>
+    </div>`;
+  calcIdealTenor(principal);
+}
+
+// ── CHART ────────────────────────────────────────────────────
+function buildChart(){
+  const years=[...new Set(sched.map(r=>r.year))];
+  const pY=years.map(y=>sched.filter(r=>r.year===y).reduce((s,r)=>s+r.principal,0));
+  const iY=years.map(y=>sched.filter(r=>r.year===y).reduce((s,r)=>s+r.interest,0));
+  const dk=document.body.classList.contains('dark');
+  const gc=dk?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.05)';
+  const tc=dk?'#6e789a':'#9ca3af';
+  if(chartInst) chartInst.destroy();
+  chartInst=new Chart(document.getElementById('chart').getContext('2d'),{
+    type:'bar',
+    data:{labels:years.map(y=>`Th ${y}`),datasets:[
+      {label:'Pokok',data:pY,backgroundColor:dk?'rgba(212,168,78,0.70)':'rgba(122,90,14,0.62)',borderRadius:3,borderSkipped:false},
+      {label:'Bunga',data:iY,backgroundColor:dk?'rgba(240,104,104,0.58)':'rgba(153,27,27,0.52)',borderRadius:3,borderSkipped:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{color:dk?'#b0b8d4':'#374151',font:{family:'DM Mono',size:11}}},
+        tooltip:{backgroundColor:dk?'#1e2235':'#ffffff',borderColor:dk?'#2d3250':'#e2e6f0',borderWidth:1,
+          titleColor:dk?'#f0f2f8':'#111827',bodyColor:dk?'#b0b8d4':'#374151',
+          callbacks:{label:c=>' '+c.dataset.label+': '+R(c.raw)}}
+      },
+      scales:{
+        x:{stacked:true,grid:{color:gc,drawTicks:false},ticks:{color:tc,font:{family:'DM Mono',size:10}}},
+        y:{stacked:true,grid:{color:gc},ticks:{color:tc,font:{family:'DM Mono',size:10},callback:v=>C(v).replace('Rp ','')}}
+      }
+    }
+  });
+  document.getElementById('chartLeg').innerHTML=`
+    <span><span class="ldot" style="background:${dk?'rgba(212,168,78,.70)':'rgba(122,90,14,.62)'}"></span>Pokok</span>
+    <span><span class="ldot" style="background:${dk?'rgba(240,104,104,.58)':'rgba(153,27,27,.52)'}"></span>Bunga</span>`;
+}
+function dlChart(){const a=document.createElement('a');a.href=document.getElementById('chart').toDataURL('image/png');a.download='kapanfund-amortisasi.png';a.click();toast('✦ Chart berhasil didownload');}
+
+// ── EARLY REPAY ──────────────────────────────────────────────
+let _earlyData = null; // stored for PDF
+
+function renderEarly(principal){
+  const ey=+document.getElementById('earlyYear').value;
+  const pen=+document.getElementById('earlyPenalty').value||0;
+  const sec=document.getElementById('earlySection');
+  if(!ey||ey<=0){sec.style.display='none';return;}
+  const row=sched[ey*12-1];
+  if(!row){sec.style.display='none';return;}
+  const out=row.outstanding, penalty=out*pen/100, total=out+penalty;
+  _out=out;
+  const slice=sched.slice(0,ey*12);
+  const ti=slice.reduce((s,r)=>s+r.interest,0);
+  const tp=slice.reduce((s,r)=>s+r.payment,0);
+  const save=sched.slice(ey*12).reduce((s,r)=>s+r.interest,0);
+  const principal_paid=principal-out;
+  const tenureYears=+document.getElementById('tenureYears').value;
+  const creditLimit=parseRp(document.getElementById('creditLimit').value);
+
+  // Store for PDF
+  _earlyData={ey,pen,out,penalty,total,ti,tp,save,principal,principal_paid,tenureYears,creditLimit};
+
+  sec.style.display='';
+
+  document.getElementById('earlyContent').innerHTML=`
+    <div class="ebox">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem">
+        <div style="font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--te)">Detail Pelunasan Dipercepat</div>
+        <button class="btn btn-te btn-sm" onclick="dlEarlyPDF()">⬇ PDF Pelunasan</button>
+      </div>
+      <div class="erow"><span class="elbl">Waktu Pelunasan</span><span class="eval">Akhir Tahun ke-${ey} (Bulan ${ey*12})</span></div>
+      <div class="erow"><span class="elbl">Sisa Pokok Outstanding</span><span class="eval">${R(out)}</span></div>
+      <div class="erow"><span class="elbl">Penalti (${pen}%)</span><span class="eval neg">${R(penalty)}</span></div>
+      <div class="erow"><span class="elbl">Total yang Harus Dibayar</span><span class="eval big">${R(total)}</span></div>
+      <hr class="hr">
+      <div class="erow"><span class="elbl">Total Angsuran Sudah Dibayar</span><span class="eval">${R(tp)}</span></div>
+      <div class="erow"><span class="elbl">Total Bunga Sudah Dibayar</span><span class="eval neg">${R(ti)}</span></div>
+      <div class="erow"><span class="elbl">Pokok Sudah Dibayar</span><span class="eval">${R(principal_paid)}</span></div>
+      <div class="erow"><span class="elbl">Penghematan Bunga Sisa Tenor</span><span class="eval pos">${R(save)}</span></div>
+      <div class="disc-sm" style="margin-top:.5rem">⚠ Estimasi. Penalti & outstanding aktual tunduk pada ketentuan bank.</div>
+    </div>
+
+    <div class="ibox">
+      <div class="ibox-h">📈 Simulasi Investasi untuk Dana Pelunasan</div>
+      <div class="ibox-desc">Pilih mode target dana, lalu tentukan parameter investasi Anda.</div>
+
+      <div class="tmode-g" id="tmodeG">
+        <label class="tmode-o on" onclick="setTmode('auto',${Math.round(total)},${Math.round(out)})">
+          <input type="radio" name="tm" value="auto" checked/>
+          <div><div class="tmode-lbl">A — Otomatis (Outstanding + Penalti)</div>
+            <div class="tmode-sub">Target = ${R(total)} · Sisa pokok + penalti ${pen}%</div></div>
+        </label>
+        <label class="tmode-o" onclick="setTmode('part',${Math.round(total)},${Math.round(out)})">
+          <input type="radio" name="tm" value="part"/>
+          <div style="width:100%"><div class="tmode-lbl">B — Sebagian dari Outstanding</div>
+            <div class="tmode-sub">Tentukan % dari sisa pokok (${R(out)})</div>
+            <div class="tmode-extra" id="partX" style="display:none">
+              <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+                <label style="font-size:.72rem;color:var(--t2);font-weight:600;white-space:nowrap">% Outstanding:</label>
+                <div class="sfx" style="width:90px;flex-shrink:0"><span>%</span>
+                  <input type="number" id="partPct" value="50" min="1" max="100" step="1" oninput="updPartTgt(${Math.round(out)})"/></div>
+                <span style="font-size:.72rem;color:var(--t3)">→ Target: <strong id="partShow" style="color:var(--pu);font-family:'DM Mono',monospace">${R(out*0.5)}</strong></span>
+              </div>
+            </div>
+          </div>
+        </label>
+        <label class="tmode-o" onclick="setTmode('man',${Math.round(total)},${Math.round(out)})">
+          <input type="radio" name="tm" value="man"/>
+          <div style="width:100%"><div class="tmode-lbl">C — Input Manual Target Dana</div>
+            <div class="tmode-sub">Masukkan nominal dana target secara bebas</div>
+            <div class="tmode-extra" id="manX" style="display:none">
+              <div class="pfx"><span>Rp</span>
+                <input type="text" id="manTgt" value="${Math.round(total).toLocaleString('id-ID')}" placeholder="500.000.000" oninput="fmtRp(this)"/></div>
+            </div>
+          </div>
+        </label>
+      </div>
+
+      <div class="tgt-bar">
+        <span class="tgt-lbl">Target Dana Investasi</span>
+        <span class="tgt-val" id="tgtDisp">${R(total)}</span>
+      </div>
+      <input type="hidden" id="invTgt" value="${Math.round(total)}"/>
+
+      <div class="ig">
+        <div class="field" style="margin:0"><label>Horizon Waktu (tahun)</label>
+          <div class="sfx"><span>th</span><input type="number" id="invH" value="${ey}" min="1"/></div></div>
+        <div class="field" style="margin:0"><label>Tipe Kontribusi</label>
+          <select id="invT"><option value="monthly">Bulanan</option><option value="yearly">Tahunan</option></select></div>
+        <div class="field" style="margin:0"><label>Target Return (%/th)</label>
+          <div class="sfx"><span>%</span><input type="number" id="invR" value="10" step="0.5" min="0.1"/></div></div>
+        <div class="field" style="margin:0"><label>Dana Awal / Lump Sum</label>
+          <div class="pfx"><span>Rp</span><input type="text" id="invI" value="0" placeholder="0" oninput="fmtRp(this)"/></div></div>
+        <div class="field" style="margin:0;display:flex;flex-direction:column;justify-content:flex-end;grid-column:span 2">
+          <button class="btn btn-pu btn-sm btn-bl" onclick="calcInv()">🔄 Hitung Investasi</button></div>
+      </div>
+
+      <div class="ires" id="iresBox" style="display:none">
+        <div class="ires-h">Hasil Simulasi Investasi</div>
+        <div class="ires-desc" id="iresDesc"></div>
+        <div class="icards" id="iresCards"></div>
+        <div class="iacts"><button class="btn btn-pu btn-sm" onclick="dlInvPDF()">⬇ PDF Simulasi Investasi</button></div>
+        <div class="iproj" id="iresProj"></div>
+        <div class="disc-sm" id="iresDisc" style="margin-top:.85rem"></div>
+      </div>
+    </div>`;
+
+  calcInv();
+}
+
+// ── TARGET MODE ──────────────────────────────────────────────
+function setTmode(mode,totalVal,outVal){
+  _out=outVal;
+  document.querySelectorAll('.tmode-o').forEach(el=>el.classList.remove('on'));
+  const r=document.querySelector(`input[name=tm][value=${mode}]`);
+  if(r){r.checked=true;r.closest('.tmode-o').classList.add('on');}
+  const px=document.getElementById('partX'),mx=document.getElementById('manX');
+  if(px) px.style.display=mode==='part'?'':'none';
+  if(mx) mx.style.display=mode==='man'?'':'none';
+  let tgt=totalVal;
+  if(mode==='part'){const p=+(document.getElementById('partPct')?.value||50);tgt=_out*p/100;updPartTgt(_out);}
+  else if(mode==='man'){const mv=parseRp(document.getElementById('manTgt')?.value);if(mv>0)tgt=mv;}
+  const hi=document.getElementById('invTgt'),td=document.getElementById('tgtDisp');
+  if(hi) hi.value=Math.round(tgt);
+  if(td) td.textContent=R(tgt);
+}
+function updPartTgt(outVal){
+  const p=+(document.getElementById('partPct')?.value||50);
+  const tgt=outVal*p/100;
+  const sh=document.getElementById('partShow'),hi=document.getElementById('invTgt'),td=document.getElementById('tgtDisp');
+  if(sh) sh.textContent=R(tgt);
+  if(hi) hi.value=Math.round(tgt);
+  if(td) td.textContent=R(tgt);
+}
+
+// ── INVESTMENT CALC ──────────────────────────────────────────
+function calcInv(){
+  const mode=document.querySelector('input[name=tm]:checked')?.value;
+  if(mode==='man'){const mv=parseRp(document.getElementById('manTgt')?.value);
+    const hi=document.getElementById('invTgt'),td=document.getElementById('tgtDisp');
+    if(hi&&mv>0){hi.value=Math.round(mv);if(td)td.textContent=R(mv);}
+  }
+  const hi=document.getElementById('invTgt'),eh=document.getElementById('invH'),
+    et=document.getElementById('invT'),er=document.getElementById('invR'),ei=document.getElementById('invI');
+  if(!hi) return;
+  const target=+hi.value,horizon=+eh.value||1,type=et.value,ret=+er.value||10,initial=parseRp(ei.value),r=ret/100;
+  if(target<=0) return;
+  let contrib,totalFV;
+  if(type==='monthly'){const rm=r/12,n=horizon*12,fvi=initial*Math.pow(1+rm,n),needed=Math.max(0,target-fvi);
+    contrib=rm===0?needed/n:needed*rm/(Math.pow(1+rm,n)-1);
+    totalFV=fvi+(rm===0?contrib*n:contrib*(Math.pow(1+rm,n)-1)/rm);}
+  else{const fvi=initial*Math.pow(1+r,horizon),needed=Math.max(0,target-fvi);
+    contrib=r===0?needed/horizon:needed*r/(Math.pow(1+r,horizon)-1);
+    totalFV=fvi+(r===0?contrib*horizon:contrib*(Math.pow(1+r,horizon)-1)/r);}
+  const totalC=type==='monthly'?contrib*horizon*12+initial:contrib*horizon+initial;
+  const totalRet=totalFV-totalC;
+  const res=document.getElementById('iresBox'); if(!res) return;
+  res.style.display='';
+  document.getElementById('iresDesc').innerHTML=`Untuk mencapai <strong>${R(target)}</strong> dalam <strong>${horizon} tahun</strong> dengan return <strong>${ret}%/tahun</strong>:`;
+  document.getElementById('iresCards').innerHTML=`
+    <div class="icard"><div class="icard-l">Tabungan ${type==='monthly'?'per Bulan':'per Tahun'}</div><div class="icard-v">${R(contrib)}</div></div>
+    <div class="icard"><div class="icard-l">Dana Awal</div><div class="icard-v g">${R(initial)}</div></div>
+    <div class="icard"><div class="icard-l">Total Kontribusi</div><div class="icard-v g">${R(totalC)}</div></div>
+    <div class="icard"><div class="icard-l">Return Investasi</div><div class="icard-v t">${R(totalRet)}</div></div>
+    <div class="icard"><div class="icard-l">Proyeksi Dana Terkumpul</div><div class="icard-v">${R(totalFV)}</div></div>
+    <div class="icard"><div class="icard-l">Efisiensi Return</div><div class="icard-v">${totalC>0?(totalRet/totalC*100).toFixed(1):0}%</div></div>`;
+  document.getElementById('iresDisc').innerHTML=`⚠ <strong>Disclaimer Investasi:</strong> Proyeksi menggunakan return konstan ${ret}%/tahun. Return aktual bersifat tidak pasti, dapat lebih rendah atau lebih tinggi. Bukan rekomendasi investasi.`;
+  buildInvTable(contrib,initial,r,horizon,type,target);
+}
+function buildInvTable(contrib,initial,r,horizon,type,target){
+  const el=document.getElementById('iresProj'); if(!el) return;
+  let rows='';
+  if(type==='monthly'){const rm=r/12;let bal=initial;
+    for(let y=1;y<=horizon;y++){for(let m=0;m<12;m++)bal=bal*(1+rm)+contrib;
+      rows+=`<tr><td style="text-align:center;font-size:.7rem;color:var(--t3)">Tahun ${y}</td>
+        <td style="text-align:right;font-family:'DM Mono',monospace;font-size:.7rem">${R(contrib)}/bln</td>
+        <td style="text-align:right;font-family:'DM Mono',monospace;font-size:.7rem;color:var(--te)">${R(bal)}</td>
+        <td style="text-align:center;font-size:.68rem">${bal>=target?`<span style="color:var(--te)">✓ Tercapai</span>`:`<span style="color:var(--re)">Belum</span>`}</td></tr>`;}}
+  else{let bal=initial;
+    for(let y=1;y<=horizon;y++){bal=bal*(1+r)+contrib;
+      rows+=`<tr><td style="text-align:center;font-size:.7rem;color:var(--t3)">Tahun ${y}</td>
+        <td style="text-align:right;font-family:'DM Mono',monospace;font-size:.7rem">${R(contrib)}/th</td>
+        <td style="text-align:right;font-family:'DM Mono',monospace;font-size:.7rem;color:var(--te)">${R(bal)}</td>
+        <td style="text-align:center;font-size:.68rem">${bal>=target?`<span style="color:var(--te)">✓ Tercapai</span>`:`<span style="color:var(--re)">Belum</span>`}</td></tr>`;}}
+  el.innerHTML=`<table class="dt"><thead><tr><th style="text-align:center">Tahun</th><th>Kontribusi</th><th>Akumulasi Dana</th><th style="text-align:center">Status</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ── EARLY REPAY PDF ──────────────────────────────────────────
+function dlEarlyPDF(){
+  if(!_earlyData){toast('⚠ Tidak ada data pelunasan');return;}
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',format:'a4'});
+  const d=_earlyData;
+  const now=new Date();
+  const dateStr=now.toLocaleDateString('id-ID')+' '+now.toLocaleTimeString('id-ID');
+
+  // ── Header
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(20); doc.setTextColor(10,107,101);
+  doc.text('KAPANFUND',14,20);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(11); doc.setTextColor(55,65,81);
+  doc.text('Laporan Simulasi Pelunasan Dipercepat KPR',14,28);
+  doc.setFontSize(8); doc.setTextColor(107,114,128);
+  doc.text(`Digenerate: ${dateStr}  |  KapanFund.id  |  WA: 0822-3379-8351`,14,35);
+
+  // ── Divider line
+  doc.setDrawColor(226,230,240);
+  doc.setLineWidth(0.5);
+  doc.line(14,38,196,38);
+
+  // ── KPR Info
+  doc.autoTable({
+    startY:42,
+    head:[['Parameter KPR','Nilai']],
+    body:[
+      ['Plafond / Pokok Kredit', R(d.principal)],
+      ['Tenor KPR', d.tenureYears+' Tahun'],
+      ['Pelunasan Dipercepat di', 'Akhir Tahun ke-'+d.ey+' (Bulan '+d.ey*12+')'],
+      ['Penalti Pelunasan', d.pen+'%'],
+    ],
+    theme:'grid',
+    styles:{fontSize:10,cellPadding:4,textColor:[55,65,81]},
+    headStyles:{fillColor:[10,107,101],textColor:255,fontStyle:'bold',fontSize:10},
+    columnStyles:{0:{fontStyle:'bold',cellWidth:90},1:{halign:'right'}},
+    margin:{left:14,right:14},
+  });
+
+  // ── Pelunasan Summary
+  const y1=doc.lastAutoTable.finalY+8;
+  doc.autoTable({
+    startY:y1,
+    head:[['Rincian Pelunasan Dipercepat','Nilai']],
+    body:[
+      ['Sisa Pokok Outstanding', R(d.out)],
+      ['Penalti ('+d.pen+'%)', R(d.penalty)],
+      ['TOTAL YANG HARUS DIBAYAR', R(d.total)],
+    ],
+    theme:'grid',
+    styles:{fontSize:10,cellPadding:4,textColor:[55,65,81]},
+    headStyles:{fillColor:[30,35,55],textColor:[201,168,76],fontStyle:'bold',fontSize:10},
+    columnStyles:{0:{fontStyle:'bold',cellWidth:90},1:{halign:'right'}},
+    bodyStyles:{},
+    didParseCell:function(data){
+      if(data.row.index===2){
+        data.cell.styles.fontStyle='bold';
+        data.cell.styles.fontSize=11;
+        if(data.column.index===1){data.cell.styles.textColor=[122,90,14];}
+      }
+    },
+    margin:{left:14,right:14},
+  });
+
+  // ── History
+  const y2=doc.lastAutoTable.finalY+8;
+  doc.autoTable({
+    startY:y2,
+    head:[['Riwayat s/d Tahun ke-'+d.ey,'Nilai']],
+    body:[
+      ['Total Angsuran Sudah Dibayar', R(d.tp)],
+      ['Total Bunga Sudah Dibayar', R(d.ti)],
+      ['Pokok yang Sudah Dilunasi', R(d.principal_paid)],
+    ],
+    theme:'grid',
+    styles:{fontSize:10,cellPadding:4,textColor:[55,65,81]},
+    headStyles:{fillColor:[91,52,168],textColor:255,fontStyle:'bold',fontSize:10},
+    columnStyles:{0:{fontStyle:'bold',cellWidth:90},1:{halign:'right'}},
+    margin:{left:14,right:14},
+  });
+
+  // ── Saving
+  const y3=doc.lastAutoTable.finalY+8;
+  doc.autoTable({
+    startY:y3,
+    head:[['Manfaat Pelunasan Dipercepat','Nilai']],
+    body:[
+      ['Penghematan Bunga Sisa Tenor', R(d.save)],
+      ['Sisa Bulan yang Dipangkas', (d.tenureYears*12 - d.ey*12)+' Bulan'],
+    ],
+    theme:'grid',
+    styles:{fontSize:10,cellPadding:4,textColor:[55,65,81]},
+    headStyles:{fillColor:[10,107,101],textColor:255,fontStyle:'bold',fontSize:10},
+    columnStyles:{0:{fontStyle:'bold',cellWidth:90},1:{halign:'right',fontStyle:'bold',textColor:[10,107,101]}},
+    margin:{left:14,right:14},
+  });
+
+  // ── Monthly schedule up to early year
+  const y4=doc.lastAutoTable.finalY+8;
+  const schedRows=sched.slice(0,d.ey*12).map(r=>[
+    r.month,
+    r.year,
+    pct(r.rate),
+    r.type==='fixed'?'Fixed':'Float',
+    Math.round(r.principal).toLocaleString('id-ID'),
+    Math.round(r.interest).toLocaleString('id-ID'),
+    Math.round(r.payment).toLocaleString('id-ID'),
+    Math.round(r.outstanding).toLocaleString('id-ID'),
+  ]);
+  doc.autoTable({
+    startY:y4,
+    head:[['Bln','Th','Rate','Tipe','Pokok (Rp)','Bunga (Rp)','Angsuran (Rp)','Sisa Pokok (Rp)']],
+    body:schedRows,
+    theme:'striped',
+    styles:{fontSize:7,cellPadding:2,textColor:[55,65,81]},
+    headStyles:{fillColor:[30,35,55],textColor:[201,168,76],fontStyle:'bold'},
+    alternateRowStyles:{fillColor:[248,249,253]},
+    columnStyles:{
+      4:{halign:'right'},5:{halign:'right'},
+      6:{halign:'right'},7:{halign:'right'}
+    },
+    margin:{left:14,right:14},
+  });
+
+  // ── Disclaimer footer on every page
+  const pages=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pages;i++){
+    doc.setPage(i);
+    doc.setFontSize(7); doc.setTextColor(156,163,175);
+    doc.text(
+      'Disclaimer: Simulasi ini bersifat ilustratif dan estimasi. Angka aktual tunduk pada ketentuan bank. Bukan komitmen kredit. | KapanFund.id',
+      14, doc.internal.pageSize.height-8
+    );
+    doc.text(`Hal ${i}/${pages}`, doc.internal.pageSize.width-20, doc.internal.pageSize.height-8,{align:'right'});
+  }
+
+  doc.save('kapanfund-pelunasan-dipercepat.pdf');
+  toast('⬇ PDF Pelunasan berhasil didownload');
+}
+
+// ── INVESTMENT PDF ────────────────────────────────────────────
+function dlInvPDF(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',format:'a4'});
+  const hi=document.getElementById('invTgt'),eh=document.getElementById('invH'),
+    et=document.getElementById('invT'),er=document.getElementById('invR'),ei=document.getElementById('invI');
+  const ey=+document.getElementById('earlyYear').value;
+  if(!hi) return;
+  const target=+hi.value,horizon=+eh.value||1,type=et.value,ret=+er.value||10,initial=parseRp(ei.value),r=ret/100;
+  let contrib,totalFV;
+  if(type==='monthly'){const rm=r/12,n=horizon*12,fvi=initial*Math.pow(1+rm,n),needed=Math.max(0,target-fvi);
+    contrib=rm===0?needed/n:needed*rm/(Math.pow(1+rm,n)-1);
+    totalFV=fvi+(rm===0?contrib*n:contrib*(Math.pow(1+rm,n)-1)/rm);}
+  else{const fvi=initial*Math.pow(1+r,horizon),needed=Math.max(0,target-fvi);
+    contrib=r===0?needed/horizon:needed*r/(Math.pow(1+r,horizon)-1);
+    totalFV=fvi+(r===0?contrib*horizon:contrib*(Math.pow(1+r,horizon)-1)/r);}
+  const totalC=type==='monthly'?contrib*horizon*12+initial:contrib*horizon+initial;
+  const totalRet=totalFV-totalC;
+  doc.setFont('helvetica','bold');doc.setFontSize(18);doc.setTextColor(91,52,168);
+  doc.text('KAPANFUND — Simulasi Investasi Pelunasan KPR',14,18);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(130,135,155);
+  doc.text(`KapanFund.id | ${new Date().toLocaleDateString('id-ID')} ${new Date().toLocaleTimeString('id-ID')} | Bukan saran investasi`,14,26);
+  doc.autoTable({startY:32,head:[['Parameter','Nilai']],
+    body:[['Target Dana',R(target)],['Pelunasan Tahun ke-',String(ey)],['Horizon',horizon+' Tahun'],['Tipe',type==='monthly'?'Bulanan':'Tahunan'],['Return/Tahun',ret+'%'],['Dana Awal',R(initial)]],
+    theme:'grid',styles:{fontSize:9,cellPadding:3},headStyles:{fillColor:[91,52,168],textColor:255,fontStyle:'bold'},columnStyles:{1:{halign:'right'}}});
+  const y1=doc.lastAutoTable.finalY+7;
+  doc.autoTable({startY:y1,head:[['Hasil Simulasi','Nilai']],
+    body:[[`Tabungan ${type==='monthly'?'per Bulan':'per Tahun'}`,R(contrib)],['Total Kontribusi',R(totalC)],['Return Investasi',R(totalRet)],['Proyeksi Dana',R(totalFV)],['Efisiensi Return',(totalC>0?totalRet/totalC*100:0).toFixed(1)+'%']],
+    theme:'grid',styles:{fontSize:9,cellPadding:3},headStyles:{fillColor:[122,90,14],textColor:255,fontStyle:'bold'},columnStyles:{1:{halign:'right',fontStyle:'bold'}}});
+  const y2=doc.lastAutoTable.finalY+7;
+  const proj=[];
+  if(type==='monthly'){const rm=r/12;let bal=initial;for(let y=1;y<=horizon;y++){for(let m=0;m<12;m++)bal=bal*(1+rm)+contrib;proj.push([`Tahun ${y}`,R(contrib)+'/bln',R(bal),bal>=target?'✓ Tercapai':'Belum']);}}
+  else{let bal=initial;for(let y=1;y<=horizon;y++){bal=bal*(1+r)+contrib;proj.push([`Tahun ${y}`,R(contrib)+'/th',R(bal),bal>=target?'✓ Tercapai':'Belum']);}}
+  doc.autoTable({startY:y2,head:[['Tahun','Kontribusi','Akumulasi','Status']],body:proj,
+    theme:'striped',styles:{fontSize:8,cellPadding:2},headStyles:{fillColor:[30,35,55],textColor:[201,168,76],fontStyle:'bold'},
+    columnStyles:{1:{halign:'right'},2:{halign:'right',fontStyle:'bold'},3:{halign:'center'}}});
+  const pg=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pg;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(160,165,185);
+    doc.text('KapanFund.id — Perencanaan KPR & Investasi | Bukan saran investasi resmi.',14,doc.internal.pageSize.height-8);}
+  doc.save('kapanfund-simulasi-investasi.pdf');
+  toast('⬇ PDF Investasi berhasil didownload');
+}
+
+// ── TABLE ────────────────────────────────────────────────────
+function renderTable(){
+  const years=[...new Set(sched.map(r=>r.year))];
+  const yf=document.getElementById('yrFilter');
+  yf.innerHTML=`<button class="yb ${viewYr===0?'on':''}" onclick="setYr(0)">Semua</button>`+
+    years.map(y=>`<button class="yb ${viewYr===y?'on':''}" onclick="setYr(${y})">Th ${y}</button>`).join('');
+  const filtered=viewYr===0?sched:sched.filter(r=>r.year===viewYr);
+  const tot=Math.ceil(filtered.length/PER_PG);
+  if(curPg>tot) curPg=1;
+  const rows=filtered.slice((curPg-1)*PER_PG,curPg*PER_PG);
+  const ey=+document.getElementById('earlyYear').value;
+  const tb=document.getElementById('tblBody');tb.innerHTML='';let prevYr=null;
+  rows.forEach(r=>{
+    const isHi=r.year===ey&&r.month%12===0;
+    if(r.year!==prevYr&&viewYr===0){
+      const yrs=sched.filter(x=>x.year===r.year);
+      tb.innerHTML+=`<tr class="yr"><td colspan="2">— Tahun ${r.year} —</td>
+        <td>${C(yrs.reduce((s,x)=>s+x.principal,0))}</td>
+        <td>${C(yrs.reduce((s,x)=>s+x.interest,0))}</td>
+        <td>${C(yrs.reduce((s,x)=>s+x.payment,0))}</td>
+        <td>${C(yrs[yrs.length-1].outstanding)}</td></tr>`;
+    }
+    prevYr=r.year;
+    tb.innerHTML+=`<tr class="${isHi?'hi':''}">
+      <td>${r.month}</td>
+      <td style="text-align:left"><span class="badge ${r.type==='fixed'?'b-fix':'b-flt'}">${pct(r.rate)}</span></td>
+      <td>${R(r.principal)}</td><td>${R(r.interest)}</td><td>${R(r.payment)}</td><td>${R(r.outstanding)}</td></tr>`;
+  });
+  document.getElementById('pgInfo').textContent=`Hal ${curPg}/${tot} — ${filtered.length} baris`;
+  document.getElementById('pgP').disabled=curPg<=1;
+  document.getElementById('pgN').disabled=curPg>=tot;
+  document.getElementById('tblInfo').textContent=`${sched.length} baris data amortisasi`;
+}
+function setYr(y){viewYr=y;curPg=1;renderTable();}
+function chPg(d){curPg+=d;renderTable();}
+
+// ── AMORTIZATION PDF ─────────────────────────────────────────
+function dlPDF(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'landscape',format:'a4'});
+  const p=parseRp(document.getElementById('creditLimit').value);
+  const ty=+document.getElementById('tenureYears').value;
+  const ti=sched.reduce((s,r)=>s+r.interest,0);
+  doc.setFont('helvetica','bold');doc.setFontSize(18);doc.setTextColor(122,90,14);
+  doc.text('KAPANFUND — Jadwal Amortisasi KPR',14,18);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(130,135,155);
+  doc.text(`Plafond: ${R(p)} | Tenor: ${ty} Tahun | Total Bunga: ${R(ti)} | ${new Date().toLocaleDateString('id-ID')}`,14,27);
+  doc.autoTable({startY:32,
+    head:[['Bln','Th','Rate','Tipe','Pokok (Rp)','Bunga (Rp)','Angsuran (Rp)','Sisa Pokok (Rp)']],
+    body:sched.map(r=>[r.month,r.year,pct(r.rate),r.type,
+      Math.round(r.principal).toLocaleString('id-ID'),Math.round(r.interest).toLocaleString('id-ID'),
+      Math.round(r.payment).toLocaleString('id-ID'),Math.round(r.outstanding).toLocaleString('id-ID')]),
+    theme:'grid',styles:{fontSize:7,cellPadding:2,textColor:[40,40,60]},
+    headStyles:{fillColor:[30,35,55],textColor:[201,168,76],fontStyle:'bold'},
+    alternateRowStyles:{fillColor:[248,249,253]},
+    columnStyles:{4:{halign:'right'},5:{halign:'right'},6:{halign:'right'},7:{halign:'right'}}});
+  doc.save('kapanfund-jadwal-amortisasi.pdf');
+  toast('⬇ PDF berhasil didownload');
+}
+
+// ── RESET ────────────────────────────────────────────────────
+function resetForm(){
+  document.getElementById('creditLimit').value='';
+  document.getElementById('tenureYears').value='20';
+  document.getElementById('earlyYear').value='';
+  document.getElementById('earlyPenalty').value='2';
+  document.getElementById('results').style.display='none';
+  document.getElementById('emptyState').style.display='';
+  sched=[]; toast('Form direset');
+}
+
+// ── MODAL ────────────────────────────────────────────────────
+function openModal(){document.getElementById('overlay').classList.add('open');document.getElementById('formWrap').style.display='';document.getElementById('okBox').style.display='none';}
+function closeModal(){document.getElementById('overlay').classList.remove('open');}
+function closeOuter(e){if(e.target===document.getElementById('overlay'))closeModal();}
+function submitForm(){
+  const name=document.getElementById('fName').value.trim();
+  const email=document.getElementById('fEmail').value.trim();
+  const phone=document.getElementById('fPhone').value.trim();
+  const type=document.getElementById('fType').value;
+  const notes=document.getElementById('fNotes').value.trim();
+  if(!name||!email||!phone||!type){toast('⚠ Lengkapi semua field wajib');return;}
+  if(!/\S+@\S+\.\S+/.test(email)){toast('⚠ Format email tidak valid');return;}
+  const msg=encodeURIComponent(`*Konsultasi KPR - KapanFund*\n\nNama: ${name}\nEmail: ${email}\nHP: ${phone}\nJenis: ${type}\nCatatan: ${notes||'-'}`);
+  window.open(`https://wa.me/6282233798351?text=${msg}`,'_blank');
+  document.getElementById('formWrap').style.display='none';
+  document.getElementById('okBox').style.display='';
+}
+
+// ── GLOSSARY ─────────────────────────────────────────────────
+function toggleGloss(){
+  document.getElementById('gBody').classList.toggle('open');
+  document.getElementById('gChev').classList.toggle('open');
+}
+
+// ── INFO TOOLTIP ─────────────────────────────────────────────
+function toggleInfo(id){
+  const el=document.getElementById(id); if(!el) return;
+  const was=el.classList.contains('open');
+  document.querySelectorAll('.ipop.open').forEach(p=>p.classList.remove('open'));
+  if(!was) el.classList.add('open');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.iw')) document.querySelectorAll('.ipop.open').forEach(p=>p.classList.remove('open'));
+});
+
+// ── TOAST ────────────────────────────────────────────────────
+let toastT;
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2800);
+}
+</script>
+</body>
+</html>
